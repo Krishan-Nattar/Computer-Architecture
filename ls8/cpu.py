@@ -57,8 +57,10 @@ class CPU:
         """ALU operations."""
 
         if op == "ADD":
-            self.reg[reg_a] += self.reg[reg_b]
-        #elif op == "SUB": etc
+            self.register[reg_a] += self.register[reg_b]
+        elif op == "MUL":
+            self.register[reg_a] *= self.register[reg_b]
+            #elif op == "SUB": etc
         else:
             raise Exception("Unsupported ALU operation")
 
@@ -105,7 +107,7 @@ class CPU:
             elif command == self.HLT:
                 sys.exit(1)
             elif command == self.MUL:
-                self.register[operand_a] *= self.register[operand_b]
+                self.alu("MUL", operand_a, operand_b)
                 IR += 3
             else:
                 print("INVALID COMMAND")
