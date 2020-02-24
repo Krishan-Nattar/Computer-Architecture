@@ -7,34 +7,48 @@ class CPU:
 
     def __init__(self):
         """Construct a new CPU."""
-        self.register = [0] * 255
-        self.ram = [0] * 8
+        self.register = [0] * 8
+        self.ram = [0] * 255
         self.pc = 0
-        self.LDI = 0b10000010
-        self.PRN = 0b01000111
-        self.HLT = 0b00000001
+        self.LDI = 0b10000010 # Set a specific register to a specific value
+        self.PRN = 0b01000111 # Print a number
+        self.HLT = 0b00000001 # Halt the program
+        self.MUL = 0b10100010 # Multiply two registers together and store result in register A
         pass
 
     def load(self):
         """Load a program into memory."""
+        # print(sys.argv)
+        path = sys.argv[1]
+        # print(path)
 
         address = 0
 
+        with open(path) as file:
+            for line in file:
+                if line[0] != "#" and line !='\n':
+                    # print(line)
+                    # print(line[0:8])
+                    self.ram[address] = int(line[:8], 2)
+                    address += 1
+
+
+
         # For now, we've just hardcoded a program:
 
-        program = [
-            # From print8.ls8
-            0b10000010, # LDI R0,8
-            0b00000000,
-            0b00001000,
-            0b01000111, # PRN R0
-            0b00000000,
-            0b00000001, # HLT
-        ]
+        # program = [
+        #     # From print8.ls8
+        #     0b10000010, # LDI R0,8
+        #     0b00000000,
+        #     0b00001000,
+        #     0b01000111, # PRN R0
+        #     0b00000000,
+        #     0b00000001, # HLT
+        # ]
 
-        for instruction in program:
-            self.ram[address] = instruction
-            address += 1
+        # for instruction in program:
+        #     self.ram[address] = instruction
+        #     address += 1
 
         
 
@@ -71,6 +85,7 @@ class CPU:
     def run(self):
         """Run the CPU."""
         IR = self.pc
+        # print(self.ram)
         
         while True:
             command = self.ram[IR]
@@ -89,6 +104,9 @@ class CPU:
                 IR += 2
             elif command == self.HLT:
                 sys.exit(1)
+            elif command == self.MUL:
+                self.register[operand_a] *= self.register[operand_b]
+                IR += 3
             else:
                 print("INVALID COMMAND")
                 sys.exit(1)
