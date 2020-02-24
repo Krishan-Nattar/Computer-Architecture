@@ -28,28 +28,21 @@ class CPU:
         self.branchtable[POP] = self.handle_POP
         self.branchtable[PUSH] = self.handle_PUSH
 
-        self.register[7] = 0xF4
-        # self.register[7] = 243
-        # print(self.register)
+        self.register[7] = 0xF4 # initialized to point at key press
 
     def handle_POP(self):
-        SP = self.register[7] +1
-        
-        value = self.ram[SP + 1]
-
-        reg = self.ram_read(self.pc + 1) # correct
+        SP = self.register[7]
+        value = self.ram[SP]
+        reg = self.ram_read(self.pc + 1)
         self.register[reg] = value
         self.register[7] += 1
         self.pc += 2
 
-        
-
     def handle_PUSH(self):
-        SP = self.register[7] + 1
-        reg = self.ram_read(self.pc + 1)
-        self.ram[SP] = self.register[reg]
-        self.ram_write(self.register[reg], SP)
         self.register[7] -= 1
+        SP = self.register[7]
+        reg = self.ram_read(self.pc + 1)
+        self.ram_write(self.register[reg], SP)
         self.pc += 2
 
 
