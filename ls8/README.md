@@ -55,6 +55,38 @@ you will eventually:
 python3 ls8.py
 ```
 
+
+<!-- Get a string of any length ("Cat") 
+"awefawefawefawefawe"
+
+"Cat"
+
+function rec_funct("Cat"){
+  if length of the string == 1{
+    return 1
+  } otherwise
+  return 1 + rec_funct("Ca")
+}
+
+
+function rec_funct("Ca"){
+  if length of the string == 1{
+    return 1
+  } otherwise
+  return 1 + rec_funct("C")
+}
+
+function rec_funct("C"){
+  if length of the string == 1{
+    return 1
+  } otherwise
+  return 1 + rec_funct(string - 1 letter)
+}
+
+
+rec_func("Cat) // 3
+-->
+
 but you'll have to implement those three above instructions first!
 
 ## Step 0: IMPORTANT: inventory what is here!

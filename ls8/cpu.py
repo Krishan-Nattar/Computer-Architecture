@@ -9,6 +9,7 @@ class CPU:
         """Construct a new CPU."""
         self.register = [0] * 255
         self.ram = [0] * 8
+        self.pc = 0
         self.LDI = 0b10000010
         self.PRN = 0b01000111
         self.HLT = 0b00000001
@@ -34,6 +35,24 @@ class CPU:
         for instruction in program:
             self.ram[address] = instruction
             address += 1
+
+        while True:
+            command = self.ram[self.pc]
+
+            if command == self.LDI:
+                reg = self.ram[self.pc + 1]
+                num = self.ram[self.pc + 2]
+                self.register[reg] = num
+                self.pc += 3
+            if command == self.PRN:
+                reg = self.ram[self.pc + 1]
+                num = self.register[reg]
+                print(num)
+                self.pc += 2
+                # DO THIS
+            if command == self.HLT:
+                sys.exit(1)
+                # DO THIS
 
 
     def alu(self, op, reg_a, reg_b):
@@ -67,11 +86,12 @@ class CPU:
 
     def run(self):
         """Run the CPU."""
+        IR = self.pc
+        operand_a = ram_read(IR + 1)
+        operand_b = ram_read(IR + 2)
         pass
     def ram_read(self, MAR):
         return self.ram[MAR]
-        pass
     def ram_write(self, MDR, MAR):
         self.ram[MAR] = MDR
-        pass
 
