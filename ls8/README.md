@@ -64,7 +64,7 @@ call.ls8
 interrupts.ls8
 keyboard.ls8
 mult.ls8
-print8.ls8
+print8.ls8 - This should print the number 8
 prinstr.ls8
 sctest.ls8
 stack.ls8
