@@ -36,23 +36,7 @@ class CPU:
             self.ram[address] = instruction
             address += 1
 
-        while True:
-            command = self.ram[self.pc]
-
-            if command == self.LDI:
-                reg = self.ram[self.pc + 1]
-                num = self.ram[self.pc + 2]
-                self.register[reg] = num
-                self.pc += 3
-            if command == self.PRN:
-                reg = self.ram[self.pc + 1]
-                num = self.register[reg]
-                print(num)
-                self.pc += 2
-                # DO THIS
-            if command == self.HLT:
-                sys.exit(1)
-                # DO THIS
+        
 
 
     def alu(self, op, reg_a, reg_b):
@@ -87,8 +71,27 @@ class CPU:
     def run(self):
         """Run the CPU."""
         IR = self.pc
-        operand_a = ram_read(IR + 1)
-        operand_b = ram_read(IR + 2)
+        
+        while True:
+            command = self.ram[IR]
+            operand_a = self.ram_read(IR + 1)
+            operand_b = self.ram_read(IR + 2)
+
+            if command == self.LDI:
+                reg = operand_a
+                num = operand_b
+                self.register[reg] = num
+                IR += 3
+            elif command == self.PRN:
+                reg = operand_a
+                num = self.register[reg]
+                print(num)
+                IR += 2
+            elif command == self.HLT:
+                sys.exit(1)
+            else:
+                print("INVALID COMMAND")
+                sys.exit(1)
         pass
     def ram_read(self, MAR):
         return self.ram[MAR]
