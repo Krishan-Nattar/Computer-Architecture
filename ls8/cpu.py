@@ -8,6 +8,8 @@ HLT = 0b00000001 # Halt the program
 MUL = 0b10100010 # Multiply two registers together and store result in register A
 POP = 0b01000110 # Pop instruction off the stack
 PUSH = 0b01000101 # Push instruction onto the stack
+CALL = 0b01010000 # Jump to a subroutine's address
+RET = 0b00010001 # Go to return address after subroutine is done
 
 class CPU:
     """Main CPU class."""
@@ -26,12 +28,12 @@ class CPU:
         self.branchtable[POP] = self.handle_POP
         self.branchtable[PUSH] = self.handle_PUSH
 
-        self.register[7] = 0xF3
+        self.register[7] = 0xF4
         # self.register[7] = 243
         # print(self.register)
 
     def handle_POP(self):
-        SP = self.register[7]
+        SP = self.register[7] +1
         
         value = self.ram[SP + 1]
 
@@ -43,7 +45,7 @@ class CPU:
         
 
     def handle_PUSH(self):
-        SP = self.register[7]
+        SP = self.register[7] + 1
         reg = self.ram_read(self.pc + 1)
         self.ram[SP] = self.register[reg]
         self.ram_write(self.register[reg], SP)
