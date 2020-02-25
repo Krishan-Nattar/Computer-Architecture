@@ -49,13 +49,13 @@ class CPU:
         Pop saved PC address off stack and move PC to that location
         continue operations from there
         '''
-        
         self.handle_POP(True)
 
     def handle_POP(self, ret = False):
         '''
         Copy value of most recently pushed stack item to given registry address.
         Move stack pointer to previously pushed stack item
+        if ret = True, set PC to the popped value and don't save into register
         '''
         SP = self.register[7]
         value = self.ram[SP]
@@ -63,11 +63,8 @@ class CPU:
         if not ret:
             reg = self.ram_read(self.pc + 1)
             self.register[reg] = value
-            # self.register[7] += 1
             self.pc += 2
         else:
-            # SP = self.register[7]
-            # value = self.ram[SP] # address of where to return to
             self.pc = value # Move PC back to the next operation after the CALL
 
         self.register[7] += 1
