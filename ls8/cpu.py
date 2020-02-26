@@ -87,9 +87,7 @@ class CPU:
 
         self.sp = 7
         self.register[self.sp] = 0xF4 # initialized to point at key press
-        # self.time = datetime.now().time()
-        # print(datetime.now())
-        self.time = time.time()
+        # self.time = time.time()
         self.interrupt_handler_address = 0xf8
         self.interrupt_mask = 5
         self.interrupt_status = 6
@@ -125,7 +123,7 @@ class CPU:
 
     def handle_ST(self):
         '''
-        Take the value from registerB and store in the ADDRESS stored in registerB
+        Take the value in registerB and store in the ADDRESS stored in registerA
         '''
         regA = self.register[self.pc+1]
         regB = self.register[self.pc + 2]
@@ -269,7 +267,8 @@ class CPU:
 
     def run(self):
         """Run the CPU."""
-        
+        init_time = time.time()
+
         while True:
 
             # Prior to instruction fetch, the following steps occur:
@@ -296,7 +295,7 @@ class CPU:
             if self.interrupts_enabled:
                 current_time = time.time()
                 if current_time >= 1:
-                    self.time = time.time() # Reset base time to check against
+                    init_time = time.time() # Reset base time to check against
 
                     # R6 is reserved for the interrupt_status
                     self.register[self.interrupt_status] = 1 # Interrupt status is on? (0b00000001)
