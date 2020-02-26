@@ -67,10 +67,11 @@ class CPU:
         # R6 = IS = Interrupt Status
         # R7 = SP = Stack Pointer
 
+        self.FL = 0 # Flag Register
+
         self.ram = [0] * 255
         self.pc = 0
         self.branchtable = {}
-        
         
         self.branchtable[LDI] = self.handle_LDI
         self.branchtable[PRN] = self.handle_PRN
@@ -84,14 +85,32 @@ class CPU:
         self.branchtable[ST] = self.handle_ST
         self.branchtable[IRET] = self.handle_IRET
         self.branchtable[JMP] = self.handle_JMP
+        self.branchtable[PRA] = self.handle_PRA
+        self.branchtable[NOP] = self.handle_NOP
 
         self.sp = 7
         self.register[self.sp] = 0xF4 # initialized to point at key press
-        # self.time = time.time()
         self.interrupt_handler_address = 0xf8
         self.interrupt_mask = 5
         self.interrupt_status = 6
         self.interrupts_enabled = True
+    
+    def handle_NOP(self):
+        print("THIS IS NOP")
+        sys.exit(1)
+
+    def handle_PRA(self):
+        '''
+        Print alpha character value stored in the given register.
+
+        Print to the console the ASCII character corresponding to the value in the register.
+        
+        '''
+        reg = self.ram_read(self.pc + 1)
+        print_char = self.register[reg]
+        print(chr(print_char))
+        self.pc += 2
+
     def handle_JMP(self):
         '''
         Jump to the address stored in the given register.
@@ -113,9 +132,24 @@ class CPU:
 
         # Registers R6-R0 are popped off the stack in that order.
 
+        for i in range(6, -1, -1):
+
+            SP = self.register[self.sp]
+            value = self.ram[SP]
+            self.register[i] = value
+            self.register[self.sp] += 1
+
         # The FL register is popped off the stack.
+        SP = self.register[self.sp]
+        value = self.ram[SP]
+        self.FL = value
+        self.register[self.sp] += 1
 
         # The return address is popped off the stack and stored in PC.
+        SP = self.register[self.sp]
+        value = self.ram[SP]
+        self.pc = value
+        self.register[self.sp] += 1
 
         # Interrupts are re-enabled
         self.interrupts_enabled = True
@@ -125,11 +159,12 @@ class CPU:
         '''
         Take the value in registerB and store in the ADDRESS stored in registerA
         '''
-        regA = self.register[self.pc+1]
-        regB = self.register[self.pc + 2]
-        self.ram[regA] = self.register[regB]
+        regA = self.ram[self.pc+1] # 0
+        regB = self.ram[self.pc + 2] # 1
+        reg_a_value = self.register[regA]
+        reg_b_value = self.register[regB] 
+        self.ram[reg_a_value] = reg_b_value
         self.pc += 3
-
     def handle_CALL(self):
         '''
         Set the PC to the address of a called subroutine.
@@ -144,6 +179,8 @@ class CPU:
         Pop saved PC address off stack and move PC to that location
         continue operations from there
         '''
+        print("RETURN")
+        sys.exit(1)
         self.handle_POP(True)
 
     def handle_POP(self, ret = False):
@@ -291,28 +328,18 @@ class CPU:
             0: Timer interrupt. This interrupt triggers once per second.
             1: Keyboard interrupt. This interrupt triggers when a key is pressed. The value of the key pressed is stored in address 0xF4.
             '''
-            # Do we ever need self.interrupts_enabled to actually be False???
+
             if self.interrupts_enabled:
                 current_time = time.time()
-                if current_time >= 1:
+                if current_time - init_time >=1:
                     init_time = time.time() # Reset base time to check against
 
                     # R6 is reserved for the interrupt_status
                     self.register[self.interrupt_status] = 1 # Interrupt status is on? (0b00000001)
 
-
-                    # TEMP CODE ***********
-                    # LDI WILL CREATE THIS FOR US
-                    # R5 is our Interrupt Mask slot
-                    self.register[self.interrupt_mask] = 0b00000001
-                    # TEMP CODE **********
-
-                    
                 # If interrupt mask is on and interrupt status is on, this will evaluate to 1
                 masked_interrupts = self.register[self.interrupt_mask] & self.register[self.interrupt_status]
 
-                print(f"Masked interrupts is {masked_interrupts}")
-                
                 # Check if interrupt status is switched on
                 for i in range(8):
                     # Right shift interrupts down by i, then mask with 1 to see if that bit was set
@@ -320,9 +347,6 @@ class CPU:
 
                     # If a bit is set:
                     if interrupt_happened:
-                        print(f"Interrupt Happened: {interrupt_happened} i: {i}")
-                        # Interrupt can really only happen in i = 1, so why the others?!
-
                         # Disable further interrupts.
                         self.interrupts_enabled = False
 
@@ -330,31 +354,29 @@ class CPU:
                         # Reset Interrupt status to 0
                         self.register[self.interrupt_status] = 0
 
-
-
-                        '''
-                        ***With interrupts, why do we push everything on the stack?***
-
-                        The idea is that if you save the machine state on the stack, then after you service the interrupt you can restore it and seamlessly pick up where you left off.
-
-                        The CPU might have been in the middle of something important when the interrupt occurred, and it'll want to get back to that once the interrupt handler is complete.
-
-                        So we push the general purpose registers and internal registers on the stack, then do interrupt stuff, then restore all those registers from the stack so the CPU can carry on with what it was doing before the interrupt occurred.
-                        '''
-                        # TODO
                         # The PC register is pushed on the stack.
+                        self.register[self.sp] -= 1
+                        SP = self.register[self.sp]
+                        self.ram_write(self.pc, SP)
+
                         # The FL register is pushed on the stack.
+                        self.register[self.sp] -= 1
+                        SP = self.register[self.sp]
+                        self.ram_write(self.FL, SP)
+                        
                         # Registers R0-R6 are pushed on the stack in that order.
+                        for j in range(7):
+                            self.register[self.sp] -= 1
+                            SP = self.register[self.sp]
+                            self.ram_write(self.register[j], SP)
+
                         # The address (vector in interrupt terminology) of the appropriate handler is looked up from the interrupt vector table.
                         # Set the PC is set to the handler address.
-
+                        self.pc = self.ram[self.interrupt_handler_address]
 
                         # Stop further checking of maskedInterrupts.
                         break
-            else:
-                pass
 
-            # # self.trace()
             IR = self.ram[self.pc]
             self.branchtable[IR]()
 
