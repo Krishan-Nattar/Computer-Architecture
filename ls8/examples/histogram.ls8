@@ -1,0 +1,5 @@
+# Store the value of '*' in a register
+# Store count of 1
+# print the '*' a total amount of the count
+# duplicate the count
+# Repeat steps 2 - 4 till count > 64
