@@ -106,10 +106,11 @@ class CPU:
         self.branchtable[JEQ] = self.handle_JEQ
         self.branchtable[JGE] = self.handle_JGE
         self.branchtable[DEC] = self.handle_DEC
+        self.branchtable[INC] = self.handle_INC
 
         self.sp = 7
         self.register[self.sp] = 0xF4 # initialized to point at key press
-        self.interrupt_handler_address = 0xf8
+        self.interrupt_handler_address = 0
         self.interrupt_mask = 5
         self.interrupt_status = 6
         self.interrupts_enabled = True
@@ -125,6 +126,7 @@ class CPU:
         if x: 
             # Creates a number associated with the keyboard input
             ret = ord(msvcrt.getch()) 
+            # print(ret)
 
             # Storing the keyboard press value in ram at this location
             # This value will be grabbed later by the interrupt operation to print out the letter
@@ -140,7 +142,14 @@ class CPU:
         self.register[reg] -= 1
 
         self.pc += 2
-        pass
+    def handle_INC(self):
+        '''
+        Increment (Add 1 to) the value in the given register.
+        '''
+        reg = self.ram_read(self.pc + 1)
+        self.register[reg] += 1
+
+        self.pc += 2
 
     def handle_CMP(self):
         '''
@@ -320,7 +329,7 @@ class CPU:
 
     def handle_ST(self):
         '''
-        Take the value in registerB and store in the ADDRESS stored in registerA
+        Take the value in registerB and store in the RAM ADDRESS stored in registerA
         '''
         regA = self.ram[self.pc+1] # 0
         regB = self.ram[self.pc + 2] # 1
@@ -330,12 +339,15 @@ class CPU:
         self.pc += 3
     def handle_LD(self):
         '''
-        Loads registerA with the value at the memory address stored in registerB.
+        Loads registerA with the value at the RAM address stored in registerB.
         '''
         regA = self.ram[self.pc+1] # 0
         regB = self.ram[self.pc + 2] # 1
         reg_b_value = self.register[regB] 
         self.register[regA] = self.ram[reg_b_value]
+        print(f"regA is {regA}")
+        print(f"regB is {regB}")
+        print(f"reg_b_value is {reg_b_value}")
         self.pc += 3
     def handle_CALL(self):
         '''
@@ -486,14 +498,18 @@ class CPU:
     def run(self):
         """Run the CPU."""
         self.init_time = time.time()
-        
+        # print(self.ram)
         while True:
             self.kbfunc()
             if self.interrupts_enabled:
                 self.handle_interrupt()
-            # print(f"PC = {self.pc}")
+            
             # print(self.register)
+            # print(f"PC IS {self.pc}")
             IR = self.ram[self.pc]
+            # print(f"IR: {IR}")
+            # print(self.ram[self.pc + 1])
+            # print(self.ram[self.pc + 2])
             self.branchtable[IR]()
 
     def ram_read(self, MAR):

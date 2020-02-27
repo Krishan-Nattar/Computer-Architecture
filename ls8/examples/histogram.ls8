@@ -1,66 +1,63 @@
-# Store the value of '*' in a register
-# 42 = value
-
 10000010 # LDI R0, 42
 00000000
-#00111000
-00101010
+00101010 #Asterisk
 
-# Store count of 1 (this is what we multiple each iteration to increase)
-
+# Store count of 1 (this is what we add to itself each iteration to double)
 10000010 # LDI R1, 1
 00000001
 00000001
 
-# Store count of 2 (multiply R1 this each time to increase)
-
-10000010 # LDI R2, 2
-00000010
-00000010
-
 #Store the total amount we are printing (6) (drop this by one each time)
 10000010 # LDI R3, 6
 00000011
-00000110
+01000000
 
-10000010 # LDI R6 # store address of R1 to copy over to R4
-00000110
-00000101
-
-
-# CALL TO HERE
-# IF R3 == R5 ->Jump to HLT
-10100111 # CMP R0,R1
-00000011
-00000001
-
-#RAM 12
-
-#01010101 # JEQ R2
-#00000010 #MAKE THIS THE ENDDDDDDD
-
-
-# R4 = R1
-10000011 # LD R4, R1
+10000010 # LDI R4 STORE FIRST CMP ADDRESS
 00000100
+00001111 # Address 15
+
+10000010 # LDI R6 STORE HLT ADDRESS (4)
 00000110
+00000100
+
+10000010 # LDI R7 STORE NEWLINE
+00000111
+00001010 #NEWLINE
+
+10100111 # CMP R1, R3 #PC = 18
+00000001
+00000011
+
+01010101 # JEQ R6
+00000110 #MAKE THIS THE LOCATION OF HLT
 
 # Print R0 (*)
-01001000 #PRN
+01001000  #PRA
 00000000
-01001000 #PRN
-00000000
-# DEC R4
-# if R0 != R5, Jump to line 30 (PRINT *)
-# R1 *= R2
-# DEC R3
-# JMP to 28
 
+#Increment R2
+01100101
+00000010
+
+10100111 # CMP R1, R2 #27
+00000001
+00000010
+
+01010110 # JNE R4 #30
+00000100 #MAKE THIS THE LOCATION INITIAL CMP
+
+01001000  #PRA
+00000111 # NEWLINE
+
+10100000 # ADD R1, R1
+00000001
 00000001
 
-# R5 will be 0 to have a comparison to R3. That is the breakpoint
+10000010 # LDI R2, 0  #37
+00000010
+00000000
 
-# print the '*' a total amount of the count
-# duplicate the count
-# Repeat steps 2 - 4 till count > 64
+01010100 # JMP R5 #40
+00000100
 
+00000001 #HLT
