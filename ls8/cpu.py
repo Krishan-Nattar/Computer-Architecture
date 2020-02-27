@@ -126,7 +126,6 @@ class CPU:
         if x: 
             # Creates a number associated with the keyboard input
             ret = ord(msvcrt.getch()) 
-            # print(ret)
 
             # Storing the keyboard press value in ram at this location
             # This value will be grabbed later by the interrupt operation to print out the letter
@@ -363,8 +362,6 @@ class CPU:
         Pop saved PC address off stack and move PC to that location
         continue operations from there
         '''
-        # print("RETURN")
-        # sys.exit(1)
         self.handle_POP(True)
 
     def handle_POP(self, ret = False):
@@ -498,18 +495,11 @@ class CPU:
     def run(self):
         """Run the CPU."""
         self.init_time = time.time()
-        # print(self.ram)
         while True:
             self.kbfunc()
             if self.interrupts_enabled:
                 self.handle_interrupt()
-            
-            # print(self.register)
-            # print(f"PC IS {self.pc}")
             IR = self.ram[self.pc]
-            # print(f"IR: {IR}")
-            # print(self.ram[self.pc + 1])
-            # print(self.ram[self.pc + 2])
             self.branchtable[IR]()
 
     def ram_read(self, MAR):
