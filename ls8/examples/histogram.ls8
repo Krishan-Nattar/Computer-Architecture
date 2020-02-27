@@ -1,5 +1,66 @@
 # Store the value of '*' in a register
-# Store count of 1
+# 42 = value
+
+10000010 # LDI R0, 42
+00000000
+#00111000
+00101010
+
+# Store count of 1 (this is what we multiple each iteration to increase)
+
+10000010 # LDI R1, 1
+00000001
+00000001
+
+# Store count of 2 (multiply R1 this each time to increase)
+
+10000010 # LDI R2, 2
+00000010
+00000010
+
+#Store the total amount we are printing (6) (drop this by one each time)
+10000010 # LDI R3, 6
+00000011
+00000110
+
+10000010 # LDI R6 # store address of R1 to copy over to R4
+00000110
+00000101
+
+
+# CALL TO HERE
+# IF R3 == R5 ->Jump to HLT
+10100111 # CMP R0,R1
+00000011
+00000001
+
+#RAM 12
+
+#01010101 # JEQ R2
+#00000010 #MAKE THIS THE ENDDDDDDD
+
+
+# R4 = R1
+10000011 # LD R4, R1
+00000100
+00000110
+
+# Print R0 (*)
+01001000 #PRN
+00000000
+01001000 #PRN
+00000000
+# DEC R4
+# if R0 != R5, Jump to line 30 (PRINT *)
+# R1 *= R2
+# DEC R3
+# JMP to 28
+
+00000001
+
+# R5 will be 0 to have a comparison to R3. That is the breakpoint
+
 # print the '*' a total amount of the count
 # duplicate the count
 # Repeat steps 2 - 4 till count > 64
+

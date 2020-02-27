@@ -69,7 +69,17 @@ class CPU:
         # R6 = IS = Interrupt Status
         # R7 = SP = Stack Pointer
 
-        self.FL = 0 # Flag Register
+        self.FL = 0b00000000 # Flag Register
+        '''
+        Note to myself about flags
+        '''
+        # 00000LGE
+        # L Less-than: during a CMP, set to 1 if registerA is less than registerB, zero otherwise.
+        # G Greater-than: during a CMP, set to 1 if registerA is greater than registerB, zero otherwise.
+        # E Equal: during a CMP, set to 1 if registerA is equal to registerB, zero otherwise.
+        self.less_than = 0b00000100
+        self.greater_than = 0b00000010
+        self.equal_to = 0b00000001
 
         self.ram = [0] * 255
         self.pc = 0
@@ -94,6 +104,8 @@ class CPU:
         self.branchtable[JLT] = self.handle_JLT
         self.branchtable[JNE] = self.handle_JNE
         self.branchtable[JEQ] = self.handle_JEQ
+        self.branchtable[JGE] = self.handle_JGE
+        self.branchtable[DEC] = self.handle_DEC
 
         self.sp = 7
         self.register[self.sp] = 0xF4 # initialized to point at key press
@@ -113,26 +125,89 @@ class CPU:
         if x: 
             # Creates a number associated with the keyboard input
             ret = ord(msvcrt.getch()) 
+
+            # Storing the keyboard press value in ram at this location
+            # This value will be grabbed later by the interrupt operation to print out the letter
             self.ram[0xf4] = ret
 
             # Adding to the register instead of overwriting in case there are other interrupt statuses being created
             self.register[self.interrupt_status] += 0b00000010
-    
-    def handle_CMP(self):
+    def handle_DEC(self):
+        '''
+        Decrement (subtract 1 from) the value in the given register.
+        '''
+        reg = self.ram_read(self.pc + 1)
+        self.register[reg] -= 1
+
+        self.pc += 2
         pass
+
+    def handle_CMP(self):
+        '''
+        Compare the values in two registers.
+        If they are equal, set the Equal E flag to 1, otherwise set it to 0.
+        If registerA is less than registerB, set the Less-than L flag to 1, otherwise set it to 0.
+        If registerA is greater than registerB, set the Greater-than G flag to 1, otherwise set it to 0.
+        '''
+        operand_a = self.ram_read(self.pc +1)
+        operand_b = self.ram_read(self.pc +2)
+        self.alu("CMP", operand_a, operand_b)
+        self.pc += 3
 
     def handle_JLT(self):
-        pass
+        '''
+        If less-than flag is set (true), jump to the address stored in the given register.
+        '''
+        if self.less_than & self.FL:
+            reg = self.ram_read(self.pc + 1)
+            self.pc = self.register[reg]
+        else:
+            self.pc +=2
 
     def handle_JNE(self):
-        pass
+        ''' 
+        If E flag is clear (false, 0), jump to the address stored in the given register.
+        '''
+        if not self.equal_to & self.FL:
+            reg = self.ram_read(self.pc + 1)
+            self.pc = self.register[reg]
+        else:
+            self.pc += 2
+
+    def handle_JGE(self):
+        '''
+        If greater-than flag or equal flag is set (true), jump to the address stored in the given register.
+        '''
+        if self.greater_than & self.FL:
+            reg = self.ram_read(self.pc + 1)
+            self.pc = self.register[reg]
+        else:
+            self.pc += 2
 
     def handle_JEQ(self):
-        pass
+        '''
+        If equal flag is set (true), jump to the address stored in the given register.
+        '''
+
+        if self.equal_to & self.FL:
+            reg = self.ram_read(self.pc + 1)
+            self.pc = self.register[reg]
+        else:
+            self.pc += 2
 
     def handle_interrupt(self):
+        '''
+        Run timer interrupt every 1 second
+        Check to see if any interrupt status have been triggered.
+        If a masked interrupt exists from program code that was executed, run interrupt sequence relevant to that interrupt type
+        '''
+
+        # Find current time to check initialized time against. 
         current_time = time.time()
+
+        # We find out if 1 second has passed
         if current_time - self.init_time >=1:
+            # print("HERE")
 
             self.init_time = time.time() # Reset base time to check against
 
@@ -186,6 +261,8 @@ class CPU:
     def handle_NOP(self):
         print("THIS IS NOP. EXITING PROGRAM")
         sys.exit(1)
+    
+
 
     def handle_PRA(self):
         '''
@@ -196,7 +273,10 @@ class CPU:
         '''
         reg = self.ram_read(self.pc + 1)
         print_char = self.register[reg]
-        print(chr(print_char))
+        if self.interrupts_enabled == False:
+            print(chr(print_char))
+        else:
+            print(chr(print_char),end="")
         self.pc += 2
 
     def handle_JMP(self):
@@ -204,8 +284,9 @@ class CPU:
         Jump to the address stored in the given register.
         Set the PC to the address stored in the given register.
         '''
-        set_pointer = self.ram_read(self.pc + 1)
-        self.pc = set_pointer
+        reg = self.ram_read(self.pc + 1)
+
+        self.pc = self.register[reg]
 
     def handle_IRET(self):
         '''
@@ -270,8 +351,8 @@ class CPU:
         Pop saved PC address off stack and move PC to that location
         continue operations from there
         '''
-        print("RETURN")
-        sys.exit(1)
+        # print("RETURN")
+        # sys.exit(1)
         self.handle_POP(True)
 
     def handle_POP(self, ret = False):
@@ -370,6 +451,15 @@ class CPU:
         elif op == "MUL":
             self.register[reg_a] *= self.register[reg_b]
             #elif op == "SUB": etc
+        elif op =="CMP":
+            if self.register[reg_a] < self.register[reg_b]:
+                self.FL = self.less_than
+
+            elif self.register[reg_a] == self.register[reg_b]:
+                self.FL = self.equal_to
+
+            elif self.register[reg_a] > self.register[reg_b]:
+                self.FL = self.greater_than
         else:
             raise Exception("Unsupported ALU operation")
 
@@ -398,17 +488,11 @@ class CPU:
         self.init_time = time.time()
         
         while True:
-
-            '''
-            Interrupt numbers
-            0: Timer interrupt. This interrupt triggers once per second.
-            1: Keyboard interrupt. This interrupt triggers when a key is pressed. The value of the key pressed is stored in address 0xF4.
-            '''
-
             self.kbfunc()
             if self.interrupts_enabled:
                 self.handle_interrupt()
-
+            # print(f"PC = {self.pc}")
+            # print(self.register)
             IR = self.ram[self.pc]
             self.branchtable[IR]()
 
