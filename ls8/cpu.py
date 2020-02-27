@@ -215,9 +215,9 @@ class CPU:
 
         # We find out if 1 second has passed
         if current_time - self.init_time >=1:
-            # print("HERE")
-
-            self.init_time = time.time() # Reset base time to check against
+            
+            # Reset base time to check against
+            self.init_time = time.time() 
 
             # R6 is reserved for the interrupt_status
             self.register[self.interrupt_status] += 0b00000001 # Interrupt status is on? (0b00000001)
@@ -227,9 +227,9 @@ class CPU:
 
         # Check if interrupt status is switched on
         for i in range(8):
+
             # Right shift interrupts down by i, then mask with 1 to see if that bit was set
             interrupt_happened = ((masked_interrupts >> i) & 1) == 1
-            # if interrupt_happened:
 
             # If a bit is set:
             if interrupt_happened:
@@ -270,8 +270,6 @@ class CPU:
         print("THIS IS NOP. EXITING PROGRAM")
         sys.exit(1)
     
-
-
     def handle_PRA(self):
         '''
         Print alpha character value stored in the given register.
@@ -513,4 +511,3 @@ class CPU:
         Write a value into a given ram index
         '''
         self.ram[MAR] = MDR
-
