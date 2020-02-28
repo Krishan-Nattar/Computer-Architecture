@@ -5,7 +5,6 @@ from datetime import datetime, timedelta
 import time
 import msvcrt 
 
-
 # ALU OPS
 
 ADD = 0b10100000 # Add two registry addresses together
@@ -65,9 +64,9 @@ class CPU:
     def __init__(self):
         """Construct a new CPU."""
         self.register = [0] * 8
-        # R5 = IM = Interrupt Mask
-        # R6 = IS = Interrupt Status
-        # R7 = SP = Stack Pointer
+        self.interrupt_mask = 5
+        self.interrupt_status = 6
+        self.sp = 7
 
         self.FL = 0b00000000 # Flag Register
         '''
@@ -108,11 +107,8 @@ class CPU:
         self.branchtable[DEC] = self.handle_DEC
         self.branchtable[INC] = self.handle_INC
 
-        self.sp = 7
         self.register[self.sp] = 0xF4 # initialized to point at key press
         self.interrupt_handler_address = 0
-        self.interrupt_mask = 5
-        self.interrupt_status = 6
         self.interrupts_enabled = True
 
         self.init_time = 0
