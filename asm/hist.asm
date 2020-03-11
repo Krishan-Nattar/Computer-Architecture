@@ -1,0 +1,7 @@
+LDI R0,ASTERISK
+
+
+ASTERISK:
+db 42
+NEWLINE:
+db 10

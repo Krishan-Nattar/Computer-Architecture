@@ -55,11 +55,53 @@ you will eventually:
 python3 ls8.py
 ```
 
+
+<!-- Get a string of any length ("Cat") 
+"awefawefawefawefawe"
+
+"Cat"
+
+function rec_funct("Cat"){
+  if length of the string == 1{
+    return 1
+  } otherwise
+  return 1 + rec_funct("Ca")
+}
+
+
+function rec_funct("Ca"){
+  if length of the string == 1{
+    return 1
+  } otherwise
+  return 1 + rec_funct("C")
+}
+
+function rec_funct("C"){
+  if length of the string == 1{
+    return 1
+  } otherwise
+  return 1 + rec_funct(string - 1 letter)
+}
+
+
+rec_func("Cat) // 3
+-->
+
 but you'll have to implement those three above instructions first!
 
 ## Step 0: IMPORTANT: inventory what is here!
 
 * Make a list of files here.
+call.ls8
+interrupts.ls8
+keyboard.ls8
+mult.ls8
+print8.ls8 - This should print the number 8
+prinstr.ls8
+sctest.ls8
+stack.ls8
+stackoverflow.ls8
+
 * Write a short 3-10-word description of what each file does.
 * Note what has been implemented, and what hasn't.
 * Read this whole file.
