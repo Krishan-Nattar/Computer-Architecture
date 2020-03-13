@@ -106,12 +106,24 @@ class CPU:
         self.branchtable[JGE] = self.handle_JGE
         self.branchtable[DEC] = self.handle_DEC
         self.branchtable[INC] = self.handle_INC
+        self.branchtable[AND] = self.handle_AND
+        self.branchtable[XOR] = self.handle_XOR
 
         self.register[self.sp] = 0xF4 # initialized to point at key press
         self.interrupt_handler_address = 0
         self.interrupts_enabled = True
 
         self.init_time = 0
+    def handle_AND(self):
+        regA = self.ram_read(self.pc + 1)
+        regB = self.ram_read(self.pc + 2)
+        self.register[regA] = self.register[regA] & self.register[regB]
+        self.pc += 3
+    def handle_XOR(self):
+        regA = self.ram_read(self.pc + 1)
+        regB = self.ram_read(self.pc + 2)
+        self.register[regA] = self.register[regA] ^ self.register[regB]
+        self.pc += 3
     def kbfunc(self): 
         '''
         Catches a keyboard input.
